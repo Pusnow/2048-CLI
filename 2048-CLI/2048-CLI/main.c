@@ -6,7 +6,31 @@
 #define cellX  6
 #define cellY  10
 
-int pipe[10];
+
+struct vector;
+
+typedef struct vector vector;
+
+
+enum direction  {
+	UP,
+	DOWN,
+	LEFT,
+	RIGHT
+
+
+};
+
+
+struct vector {
+
+	int X;
+	int Y;
+
+
+};
+
+
 
 void printgrid(void){
 	int x, y;
@@ -45,9 +69,110 @@ void printnumber(int a[4][4]){
 
 }
 
+void govector(int a[4][4], vector dir){
+	int x, y, k;
+	int i, j;
+
+
+	if (dir.X + dir.Y < 0){
+		x = 0;
+		y = 0;
+	}
+	else {
+		x = 3;
+		y = 3;
+
+	}
+	for (i = 0; i < 4; i++){
+		for (j = 0; j<4; j++){
+
+			if (a[x - dir.X * j][y - dir.Y*j] != 0){
+				for (k = j-1; k >= 0; k--){
+
+
+					if (a[x - dir.X * k][y - dir.Y*k] == 0){
+						a[x - dir.X * k][y - dir.Y*k] = a[x - dir.X * (k + 1)][y - dir.Y*(k + 1)];
+						a[x - dir.X * (k + 1)][y - dir.Y*(k + 1)] = 0;
+					
+
+					}
+					else if (a[x - dir.X * k][y - dir.Y*k] == a[x - dir.X * (k + 1)][y - dir.Y*(k + 1)]){
+						a[x - dir.X * k][y - dir.Y*k] = a[x - dir.X * k][y - dir.Y*k] * 2;
+						a[x - dir.X * (k + 1)][y - dir.Y*(k + 1)] = 0;
+						break;
+
+					}
+					else {
+						break;
+					}
+				}
+			}
+
+
+		}
+		x = (x - dir.Y) % 4;
+		y = (y - dir.X) % 4;
+
+	}
+
+
+
+}
+
+
+
+/*
+void govector(int a[4][4], vector dir){
+	int x, y, k;
+	int i, j;
+
+
+	if (dir.X + dir.Y < 0){
+		x = 0;
+		y = 0;
+	}
+	else {
+		x = 3;
+		y = 3;
+
+	}
+	for (i = 0; i < 4; i++){
+		for (j = 0;  j<4; j++){
+
+			if (a[x - dir.X * j][y - dir.Y*j] == 0){
+				for (k = j+1; k < 4; k++){
+					if (a[x - dir.X * k][y - dir.Y*k] != 0){
+						a[x - dir.X * j][y - dir.Y*j] = a[x - dir.X * k][y - dir.Y*k];
+						a[x - dir.X * k][y - dir.Y*k] = 0;
+						break;
+
+					}
+				}
+			}
+
+
+		}
+		x = (x - dir.Y)%4;
+		y = (y - dir.X)%4;
+
+	}
+
+
+
+}
+
+*/
+/*
 void goright(int a[4][4]){
 	int x, y,k;
 
+	vector dir;
+	dir.X = 1;
+	dir.Y = 0;
+
+	govector(a, dir);
+
+	/*
 	for (y = 0; y < 4; y++){
 		for (x = 3; x >= 0; x--){
 
@@ -63,6 +188,7 @@ void goright(int a[4][4]){
 		}
 
 	}
+	
 }
 
 void mergeright(int a[4][4]){
@@ -91,6 +217,7 @@ void goleft(int a[4][4]){
 					if (a[k][y] != 0){
 						a[x][y] = a[k][y];
 						a[k][y] = 0;
+
 						break;
 					}
 				}
@@ -183,28 +310,44 @@ void mergeup(int a[4][4]){
 }
 
 
-
+*/
 
 void right(int a[4][4]){
-	goright(a);
-	mergeright(a);
-	goright(a);
+	vector dir;
+	dir.X = 1;
+	dir.Y = 0;
+
+	govector(a, dir);
+	//mergeright(a);
+	//goright(a);
 }
 void left(int a[4][4]){
-	goleft(a);
-	mergeleft(a);
-	goleft(a);
+	vector dir;
+	dir.X = -1;
+	dir.Y = 0;
+
+	govector(a, dir);
 }
 
 void up(int a[4][4]){
-	goup(a);
-	mergeup(a);
-	goup(a);
+	vector dir;
+	dir.X = 0;
+	dir.Y = -1;
+
+	govector(a, dir);
 }
 void down(int a[4][4]){
-	godown(a);
-	mergedown(a);
-	godown(a);
+	vector dir;
+	dir.X = 0;
+	dir.Y = 1;
+
+	govector(a, dir);
+}
+
+void showanimation(void){
+
+
+
 }
 
 
