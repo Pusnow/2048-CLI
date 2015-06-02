@@ -13,8 +13,9 @@ struct vector;
 
 typedef struct vector vector;
 void showanimation(int[4][4], vector[4][4]);
+void printscore(void);
 
-unsigned int score;
+unsigned int score, best=0;
 
 enum direction  {
 	UP,
@@ -69,7 +70,19 @@ void printnumber(int a[4][4]){
 		}
 	}
 
-	mvprintw(cellX, cellY * 5 + cellY/2, "Score : %d", score);
+	printscore();
+
+}
+
+
+void printscore(void){
+	
+
+
+	mvprintw(cellX, cellY * 5 + cellY / 2 , "Best  : %d", best);
+	mvprintw(cellX+1, cellY * 5 + cellY / 2, "Score : %d", score);
+
+
 
 }
 
@@ -107,6 +120,8 @@ void govector(int a[4][4], vector dir, vector ani[4][4]){
 					else if (a[x - dir.X * k][y - dir.Y*k] == a[x - dir.X * (k + 1)][y - dir.Y*(k + 1)]){
 						a[x - dir.X * k][y - dir.Y*k] = a[x - dir.X * k][y - dir.Y*k] * 2;
 						score += a[x - dir.X * k][y - dir.Y*k];
+						if (score > best)
+							best = score;
 						a[x - dir.X * (k + 1)][y - dir.Y*(k + 1)] = 0;
 						ani[x - dir.X * j][y - dir.Y*j].X += dir.X;
 						ani[x - dir.X * j][y - dir.Y*j].Y += dir.Y;
@@ -188,6 +203,7 @@ void showanimation(int a[4][4], vector ani[4][4]){
 
 			}
 		}
+		printscore();
 		refresh();
 		//_sleep(1);
 
@@ -201,8 +217,7 @@ void showanimation(int a[4][4], vector ani[4][4]){
 }
 
 
-void keyprocess(char a, int t[4][4]){
-	printw("%d", a);
+int keyprocess(char a, int t[4][4]){
 	switch (a)
 	{
 	case 'w':
@@ -221,66 +236,190 @@ void keyprocess(char a, int t[4][4]){
 
 
 	default:
-		break;
+		return -1;
 	}
 
 
 }
-void randgen(int a[16]){
+int randgen(int a[16]){
 	int k;
+
+	for (k = 0; k < 16; k++){
+		if (a[k] == 0)
+			break;
+	}
+	if (k == 16)
+		return -1;
+
+
 	do {
 		k = rand() % 16;
 
 	} while (a[k] != 0);
-	a[k] = 2;
+	a[k] = (rand()%2+1)*2;
 
 
 }
 
-int main() {
+void resettable(int a[16]){
+	int i;
+	for (i = 0; i < 16; i++){
+		a[i] = 0;
 
-	int i = 0;
-	int row, col;
-	int play_x=0, play_y=0;
+	}
+}
+
+int gamestart(void){
 	int table[4][4] = { 0, };
-	char key = 0;
+	int end;
 	score = 0;
+	randgen(table);
+	while (1){
+		//clear();
+		clear();
+		//mvprintw(play_x,play_y,"O");    /* Print Hello World */
+
+
+
+		printgrid();
+		printnumber(table);
+
+
+
+		while (keyprocess(getch(), table) == -1){}
+		end = randgen(table);
+		if (checkgameover(table)){
+			gameover();
+			if (getch() == 'r'){
+				
+				resettable(table);
+				score = 0;
+				randgen(table);
+			}
+
+
+		}
+		refresh();                    /* Print it on to the real screen */
+
+		//keyprocess(getch(),table);
+
+	}
+
+
+
+}
+
+void gameinit(){
 	srand(time(NULL));
-	table[0][1] = table[0][2] = 2;
-	table[0][3] = 4;
-	table[1][0] = table[2][0] = 2;
-	table[3][0] = 4;
+
 	initscr();                    /* Start curses mode */
-	
+
 	start_color();
 	noecho();
 	curs_set(FALSE);
 	init_pair(1, COLOR_BLACK, COLOR_WHITE);
 	bkgd(COLOR_PAIR(1));
-
-	getmaxyx(stdscr, row, col);              /* get the number of rows and columns */
 	//nodelay(stdscr, TRUE);
 	keypad(stdscr, TRUE);
-	while (1){
-		//clear();
-		clear();
-		//mvprintw(play_x,play_y,"O");    /* Print Hello World */
-		
-		
-		
-		printgrid();
-		printnumber(table);
-		mvprintw(3, 3, "%d",key);
 
 
-		keyprocess(getch(),table);
-		randgen(table);
-		refresh();                    /* Print it on to the real screen */
-		play_x++;
-		
-		//keyprocess(getch(),table);
-		
+}
+
+void title(){
+	int x, y,maxx,maxy;
+	clear();
+	getmaxyx(stdscr,maxy, maxx);
+	y = maxy / 2- 8;
+	x = maxx / 2 - 18;
+	mvprintw(y, x, " _______  _______  _   ___   _____  ");
+	mvprintw(y + 1, x, "|       ||  _    || | |   | |  _  | ");
+	mvprintw(y + 2, x, "|____   || | |   || |_|   | | |_| | ");
+	mvprintw(y + 3, x, " ____|  || | |   ||       ||   _   |");
+	mvprintw(y + 4, x, "| ______|| |_|   ||___    ||  | |  |");
+	mvprintw(y + 5, x, "| |_____ |       |    |   ||  |_|  |");
+	mvprintw(y + 6, x, "|_______||_______|    |___||_______|");
+
+	
+	mvhline(0, 0, ACS_HLINE, maxx/2 -1);
+	mvvline(0, 0, ACS_VLINE, maxy -1 );
+	mvhline(maxy - 1, 0, ACS_HLINE, maxx/2 -1);
+	mvvline(0, maxx-3, ACS_VLINE, maxy -1);
+	
+	mvaddch(0, 0, ACS_ULCORNER);
+	mvaddch(maxy - 1, 0, ACS_LLCORNER);
+	mvaddch(0, maxx/2 -1 , ACS_URCORNER);
+	mvaddch(maxy - 1, maxx/2 -1, ACS_LRCORNER);
+	
+
+	mvprintw(y + 14, x+5, "Press any key to start.");
+	mvprintw(maxy-2, 1, "(c) Wonsup Yoon, Yonsei University 2015");
+	refresh();
+
+
+}
+
+int checkgameover(int a[4][4]){
+	int i, j;
+	for (i = 0; i < 4; i++){
+		for (j = 0; j < 3; j++){
+			if (a[i][j] == 0)
+				return 0;
+			if (a[j][i] == 0)
+				return 0;
+			if (a[i][j] == a[i][j + 1])
+				return 0;
+			if (a[j][i] == a[j + 1][i])
+				return 0;
+		}
 	}
+
+	return 1;
+
+
+}
+
+int gameover(){
+	WINDOW *over;
+	
+	int maxy, maxx;
+	int winx, winy;
+
+	winx = 40;
+	winy = 8;
+
+	getmaxyx(stdscr, maxy, maxx);
+	clear();
+	over = newwin(winy, winx, maxy / 2 -winy/2, maxx / 2 - winx/2);
+	mvwprintw(over,1,winx/2 - 5 ,"Game Over!");
+
+	mvwprintw(over, 3, winx / 2 - 5, "Score: %d", score);
+
+	mvwprintw(over, 5, winx / 2 - 10, "Press R key to retry", score);
+
+	//box(over, 0, 0);
+	wborder(over, '|', '|', '-', '-', '+', '+', '+', '+');
+	refresh();
+	wrefresh(over);
+	
+
+
+
+}
+                                    
+
+
+int main() {
+
+
+	gameinit();
+	title();
+	
+	getch();
+	gamestart();
+	
+	
+	
+	
 	endwin();                     /* End curses mode */
 
 
