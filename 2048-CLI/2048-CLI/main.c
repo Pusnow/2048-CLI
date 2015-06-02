@@ -4,13 +4,17 @@
 #include "curses.h"
 
 #define cellX  6
-#define cellY  10
+#define cellY  12
+
+
 
 
 struct vector;
 
 typedef struct vector vector;
+void showanimation(int[4][4], vector[4][4]);
 
+unsigned int score;
 
 enum direction  {
 	UP,
@@ -65,12 +69,13 @@ void printnumber(int a[4][4]){
 		}
 	}
 
-
+	mvprintw(cellX, cellY * 5 + cellY/2, "Score : %d", score);
 
 }
 
-void govector(int a[4][4], vector dir){
-	int x, y, k;
+
+void govector(int a[4][4], vector dir, vector ani[4][4]){
+	int x, y, k, lastmerge;
 	int i, j;
 
 
@@ -84,22 +89,28 @@ void govector(int a[4][4], vector dir){
 
 	}
 	for (i = 0; i < 4; i++){
+		lastmerge = -1;
 		for (j = 0; j<4; j++){
 
 			if (a[x - dir.X * j][y - dir.Y*j] != 0){
-				for (k = j-1; k >= 0; k--){
+				for (k = j-1; k >lastmerge; k--){
 
 
 					if (a[x - dir.X * k][y - dir.Y*k] == 0){
 						a[x - dir.X * k][y - dir.Y*k] = a[x - dir.X * (k + 1)][y - dir.Y*(k + 1)];
 						a[x - dir.X * (k + 1)][y - dir.Y*(k + 1)] = 0;
+						ani[x - dir.X * j][y - dir.Y*j].X += dir.X;
+						ani[x - dir.X * j][y - dir.Y*j].Y += dir.Y;
 					
 
 					}
 					else if (a[x - dir.X * k][y - dir.Y*k] == a[x - dir.X * (k + 1)][y - dir.Y*(k + 1)]){
 						a[x - dir.X * k][y - dir.Y*k] = a[x - dir.X * k][y - dir.Y*k] * 2;
+						score += a[x - dir.X * k][y - dir.Y*k];
 						a[x - dir.X * (k + 1)][y - dir.Y*(k + 1)] = 0;
-						break;
+						ani[x - dir.X * j][y - dir.Y*j].X += dir.X;
+						ani[x - dir.X * j][y - dir.Y*j].Y += dir.Y;
+						lastmerge = k;
 
 					}
 					else {
@@ -121,230 +132,69 @@ void govector(int a[4][4], vector dir){
 
 
 
-/*
-void govector(int a[4][4], vector dir){
-	int x, y, k;
-	int i, j;
-
-
-	if (dir.X + dir.Y < 0){
-		x = 0;
-		y = 0;
-	}
-	else {
-		x = 3;
-		y = 3;
-
-	}
-	for (i = 0; i < 4; i++){
-		for (j = 0;  j<4; j++){
-
-			if (a[x - dir.X * j][y - dir.Y*j] == 0){
-				for (k = j+1; k < 4; k++){
-					if (a[x - dir.X * k][y - dir.Y*k] != 0){
-						a[x - dir.X * j][y - dir.Y*j] = a[x - dir.X * k][y - dir.Y*k];
-						a[x - dir.X * k][y - dir.Y*k] = 0;
-						break;
-
-					}
-				}
-			}
-
-
-		}
-		x = (x - dir.Y)%4;
-		y = (y - dir.X)%4;
-
-	}
-
-
-
-}
-
-*/
-/*
-void goright(int a[4][4]){
-	int x, y,k;
-
-	vector dir;
-	dir.X = 1;
-	dir.Y = 0;
-
-	govector(a, dir);
-
-	/*
-	for (y = 0; y < 4; y++){
-		for (x = 3; x >= 0; x--){
-
-			if (a[x][y] == 0){
-				for (k = x - 1; k >= 0; k--){
-					if (a[k][y] != 0){
-						a[x][y] = a[k][y];
-						a[k][y] = 0;
-						break;
-					}
-				}
-			}
-		}
-
-	}
-	
-}
-
-void mergeright(int a[4][4]){
-	int x, y;
-
-	for (y = 0; y < 4; y++){
-		for (x = 3; x > 0; x--){
-			if (a[x][y] == a[x - 1][y]){
-				a[x][y] = 2 * a[x][y];
-				a[x - 1][y] = 0;
-			}
-		}
-	}
-
-
-}
-
-
-void goleft(int a[4][4]){
-	int x, y, k;
-	for (y = 0; y < 4; y++){
-		for (x = 0; x < 4; x++){
-
-			if (a[x][y] == 0){
-				for (k = x + 1; k < 4; k++){
-					if (a[k][y] != 0){
-						a[x][y] = a[k][y];
-						a[k][y] = 0;
-
-						break;
-					}
-				}
-			}
-		}
-	}
-}
-void mergeleft(int a[4][4]){
-	int x, y;
-
-	for (y = 0; y < 4; y++){
-		for (x = 0; x < 3; x++){
-			if (a[x][y] == a[x + 1][y]){
-				a[x][y] = 2 * a[x][y];
-				a[x + 1][y] = 0;
-			}
-		}
-	}
-
-
-}
-
-
-void godown(int a[4][4]){
-	int x, y, k;
-	for (x = 0; x < 4; x++){
-		for (y = 3; y >= 0; y--){
-
-			if (a[x][y] == 0){
-				for (k = y - 1; k >=0; k--){
-					if (a[x][k] != 0){
-						a[x][y] = a[x][k];
-						a[x][k] = 0;
-						break;
-					}
-				}
-			}
-		}
-
-	}
-}
-
-void mergedown(int a[4][4]){
-	int x, y;
-
-	for (x = 0; x < 4; x++){
-		for (y = 3; y > 0; y--){
-			if (a[x][y] == a[x][y-1]){
-				a[x][y] = 2 * a[x][y];
-				a[x ][y-1] = 0;
-			}
-		}
-	}
-
-
-}
-
-void goup(int a[4][4]){
-	int x, y, k;
-	
-	for (x = 0; x < 4; x++){
-		for (y = 0; y < 3; y++){
-			if (a[x][y] == 0){
-				for (k = y + 1; k < 4; k++){
-					if (a[x][k] != 0){
-						a[x][y] = a[x][k];
-						a[x][k] = 0;
-						break;
-					}
-				}
-			}
-		}
-
-	}
-}
-
-void mergeup(int a[4][4]){
-	int x, y;
-
-	for (x = 0; x < 4; x++){
-		for (y = 0; y < 3; y++){
-			if (a[x][y] == a[x][y+1]){
-				a[x][y] = 2 * a[x][y];
-				a[x ][y+1] = 0;
-			}
-		}
-	}
-
-
-}
-
-
-*/
 
 void right(int a[4][4]){
-	vector dir;
+	vector dir, ani[4][4] = { { 0, 0 }, };
+	int b[4][4];
 	dir.X = 1;
 	dir.Y = 0;
+	memcpy(b, a, sizeof(int)* 4 * 4);
+	govector(a, dir,ani);
 
-	govector(a, dir);
-	//mergeright(a);
-	//goright(a);
+	showanimation(b, ani);
 }
 void left(int a[4][4]){
-	vector dir;
+	vector dir, ani[4][4] = { { 0, 0 }, };
+	int b[4][4];
+
+	memcpy(b, a, sizeof(int)* 4 * 4);
 	dir.X = -1;
 	dir.Y = 0;
 
-	govector(a, dir);
+	govector(a, dir, ani);
+	showanimation(b, ani);
 }
 
 void up(int a[4][4]){
-	vector dir;
+	vector dir, ani[4][4] = { { 0, 0 }, };
+	int b[4][4];
 	dir.X = 0;
 	dir.Y = -1;
-
-	govector(a, dir);
+	memcpy(b, a, sizeof(int)* 4 * 4);
+	govector(a, dir, ani);
+	showanimation(b, ani);
 }
 void down(int a[4][4]){
-	vector dir;
+	vector dir, ani[4][4] = { { 0, 0 }, };
+	int b[4][4];
 	dir.X = 0;
 	dir.Y = 1;
-
-	govector(a, dir);
+	memcpy(b, a, sizeof(int)* 4 * 4);
+	govector(a, dir, ani);
+	showanimation(b, ani);
 }
 
-void showanimation(void){
+void showanimation(int a[4][4], vector ani[4][4]){
+	int i, x,y;
+
+	for (i = 0; i < cellX*cellY; i++){
+		clear();
+		printgrid();
+		for (x = 0; x < 4; x++){
+			for (y = 0; y < 4; y++){
+				if (a[x][y] != 0)
+					mvprintw(cellX*y + cellX / 2 + ani[x][y].Y*i/(cellX*2), cellY*(x + 1) + cellY / 2 + ani[x][y].X*i/cellX, "%d", a[x][y]);
+
+
+			}
+		}
+		refresh();
+		//_sleep(1);
+
+
+
+
+	}
 
 
 
@@ -394,6 +244,7 @@ int main() {
 	int play_x=0, play_y=0;
 	int table[4][4] = { 0, };
 	char key = 0;
+	score = 0;
 	srand(time(NULL));
 	table[0][1] = table[0][2] = 2;
 	table[0][3] = 4;
