@@ -1,2 +1,2 @@
-# Yonsei-Bird
-Yonsei Bird
+# 2048-CLI
+CLI version 2048 with PDCurses
