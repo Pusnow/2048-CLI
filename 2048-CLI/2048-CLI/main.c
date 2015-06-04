@@ -146,19 +146,38 @@ void govector(int a[4][4], vector dir, vector ani[4][4]){
 }
 
 
+int movecheck(vector ani[4][4]){
+	int i, j;
+
+	for (i = 0; i < 4; i++){
+		for (j = 0; j < 4; j++){
+			if (ani[i][j].X != 0 || ani[i][j].Y != 0)
+				return 0;
+
+		}
+
+	}
+	return 1;
 
 
-void right(int a[4][4]){
+}
+
+
+int right(int a[4][4]){
 	vector dir, ani[4][4] = { { 0, 0 }, };
 	int b[4][4];
 	dir.X = 1;
 	dir.Y = 0;
 	memcpy(b, a, sizeof(int)* 4 * 4);
 	govector(a, dir,ani);
+	
+	if (movecheck(ani))
+		return -1;
 
 	showanimation(b, ani);
+	return 0;
 }
-void left(int a[4][4]){
+int left(int a[4][4]){
 	vector dir, ani[4][4] = { { 0, 0 }, };
 	int b[4][4];
 
@@ -167,45 +186,57 @@ void left(int a[4][4]){
 	dir.Y = 0;
 
 	govector(a, dir, ani);
+	
+	if (movecheck(ani))
+		return -1;
 	showanimation(b, ani);
+	return 0;
 }
 
-void up(int a[4][4]){
+int up(int a[4][4]){
 	vector dir, ani[4][4] = { { 0, 0 }, };
 	int b[4][4];
 	dir.X = 0;
 	dir.Y = -1;
 	memcpy(b, a, sizeof(int)* 4 * 4);
 	govector(a, dir, ani);
+	
+	if (movecheck(ani))
+		return -1;
 	showanimation(b, ani);
+	return 0;
 }
-void down(int a[4][4]){
+int down(int a[4][4]){
 	vector dir, ani[4][4] = { { 0, 0 }, };
 	int b[4][4];
 	dir.X = 0;
 	dir.Y = 1;
 	memcpy(b, a, sizeof(int)* 4 * 4);
 	govector(a, dir, ani);
+	
+	if (movecheck(ani))
+		return -1;
 	showanimation(b, ani);
+	return 0;
 }
 
 void showanimation(int a[4][4], vector ani[4][4]){
 	int i, x,y;
 
-	for (i = 0; i < cellX*cellY; i++){
+	for (i = 0; i < cellY; i++){
 		clear();
 		printgrid();
 		for (x = 0; x < 4; x++){
 			for (y = 0; y < 4; y++){
 				if (a[x][y] != 0)
-					mvprintw(cellX*y + cellX / 2 + ani[x][y].Y*i/(cellX*2), cellY*(x + 1) + cellY / 2 + ani[x][y].X*i/cellX, "%d", a[x][y]);
+					mvprintw(cellX*y + cellX / 2 + ani[x][y].Y*i*cellX/cellY, cellY*(x + 1) + cellY / 2 + ani[x][y].X*i, "%d", a[x][y]);
 
 
 			}
 		}
 		printscore();
 		refresh();
-		//_sleep(1);
+		_sleep(5);
 
 
 
@@ -217,26 +248,31 @@ void showanimation(int a[4][4], vector ani[4][4]){
 }
 
 
-int keyprocess(char a, int t[4][4]){
+void keyprocess(char a, int t[4][4]){
+	int keyresult;
 	switch (a)
 	{
 	case 'w':
-		up(t);
+		keyresult= up(t);
 		break;
 	case 's':
-		down(t);
+		keyresult =down(t);
 		break;
 	case 'a':
-		left(t);
+		keyresult = left(t);
 		break;
 	case 'd':
-		right(t);
+		keyresult = right(t);
 		break;
-
+		
 
 
 	default:
-		return -1;
+		keyresult = -1;
+	}
+
+	if (keyresult == 0){
+		randgen(t);
 	}
 
 
@@ -271,9 +307,11 @@ void resettable(int a[16]){
 
 int gamestart(void){
 	int table[4][4] = { 0, };
-	int end;
+	//int end;
 	score = 0;
 	randgen(table);
+
+	table[0][0] = table[0][1] = 1024;
 	while (1){
 		//clear();
 		clear();
@@ -286,8 +324,8 @@ int gamestart(void){
 
 
 
-		while (keyprocess(getch(), table) == -1){}
-		end = randgen(table);
+		
+		//end = randgen(table);
 		if (checkgameover(table)){
 			gameover();
 			if (getch() == 'r'){
@@ -296,9 +334,36 @@ int gamestart(void){
 				score = 0;
 				randgen(table);
 			}
+			else{
+				printgrid();
+				printnumber(table);
+				getch();
+
+			}
 
 
 		}
+		else if (checkvictory(table)){
+			victory();
+			if (getch() == 'r'){
+
+				resettable(table);
+				score = 0;
+				randgen(table);
+			}
+			else{
+				printgrid();
+				printnumber(table);
+				getch();
+
+			}
+		}
+
+		else {
+			keyprocess(getch(), table);
+		}
+
+
 		refresh();                    /* Print it on to the real screen */
 
 		//keyprocess(getch(),table);
@@ -377,6 +442,20 @@ int checkgameover(int a[4][4]){
 
 
 }
+int checkvictory(int a[4][4]){
+	int i, j;
+	for (i = 0; i < 4; i++){
+		for (j = 0; j < 4; j++){
+			if (a[i][j] == 2048)
+				return 1;
+
+		}
+	}
+
+	return 0;
+
+
+}
 
 int gameover(){
 	WINDOW *over;
@@ -405,7 +484,33 @@ int gameover(){
 
 
 }
-                                    
+int victory(){
+	WINDOW *over;
+
+	int maxy, maxx;
+	int winx, winy;
+
+	winx = 40;
+	winy = 8;
+
+	getmaxyx(stdscr, maxy, maxx);
+	clear();
+	over = newwin(winy, winx, maxy / 2 - winy / 2, maxx / 2 - winx / 2);
+	mvwprintw(over, 1, winx / 2 - 5, "Victory!");
+
+	mvwprintw(over, 3, winx / 2 - 5, "Score: %d", score);
+
+	mvwprintw(over, 5, winx / 2 - 10, "Press R key to retry", score);
+
+	//box(over, 0, 0);
+	wborder(over, '|', '|', '-', '-', '+', '+', '+', '+');
+	refresh();
+	wrefresh(over);
+
+
+
+
+}
 
 
 int main() {
